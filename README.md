@@ -11,4 +11,4 @@ I then built a [webapp]() that allows users to classify bottles from their image
 
 This repository contains the code for this webapp I built.
 
-Here is a [demo video on my youtube channel]().
+Here is a [demo video on my youtube channel](https://youtu.be/cGOc8Ps28Ko).
