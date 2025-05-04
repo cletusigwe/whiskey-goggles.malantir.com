@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('whiskeys', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('store_id')->unique()->comment('Unique identifier from CSV');
+            $table->unsignedBigInteger('store_id')->comment('Unique identifier from CSV');
             $table->string('unique_name')->unique()->comment('Unique identifier for classification');
             $table->string('name');
             $table->unsignedInteger('size')->comment('Bottle size in ml');
@@ -31,6 +31,8 @@ return new class extends Migration
             $table->unsignedBigInteger('vote_count')->default(0);
             $table->unsignedBigInteger('bar_count')->default(0);
             $table->unsignedInteger('ranking')->default(0);
+            $table->unsignedInteger('stock')->default(0)->comment('Stock quantity');
+            $table->text('notes')->nullable()->comment('User notes about the whiskey');
             $table->timestamps();
 
             $table->foreign('brand_id')->references('id')->on('brands')->onDelete('set null');

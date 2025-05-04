@@ -9,15 +9,7 @@ Route::get('/', function () {
     return Inertia::render('CapturePage');
 });
 
-Route::get('/camera', function () {
-    return Inertia::render('CameraPage');
-});
-
-Route::get('/upload', function () {
-    return Inertia::render('UploadPage');
-});
-
-Route::get('/results', [ClassificationController::class, 'results']);
+Route::get('/results', [WhiskeyController::class, 'results']);
 Route::post('/classify', [ClassificationController::class, 'classify']);
 
 Route::get('/edit', [WhiskeyController::class, 'edit']);
@@ -25,4 +17,13 @@ Route::post('/whiskeys', [WhiskeyController::class, 'store']);
 
 Route::get('/history', [HistoryController::class, 'index']);
 
-Route::get('/search', [WhiskeyController::class, 'index']);
+Route::get('/onnx/{file}', function ($file) {
+    $path = storage_path("app/onnx/$file");
+    abort_unless(file_exists($path), 404);
+    $mime = match (true) {
+        str_ends_with($file, '.onnx') => 'application/octet-stream',
+        str_ends_with($file, '.json') => 'application/json',
+        default => 'application/octet-stream',
+    };
+    return response()->file($path, ['Content-Type' => $mime]);
+});

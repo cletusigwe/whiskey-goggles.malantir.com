@@ -22,3 +22,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+upload.sh
+cat_it.sh
+*.txt
+Notes.md

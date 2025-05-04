@@ -22,4 +22,7 @@ export default defineConfig({
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
     },
+    optimizeDeps: {
+        exclude: ['onnxruntime-web'], // Exclude onnxruntime-web to avoid Vite optimizing CDN import
+    },
 });
