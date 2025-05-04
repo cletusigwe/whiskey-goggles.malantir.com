@@ -1,6 +1,6 @@
-*
 !private/
 !public/
 !.gitignore
-!onnx
+!onnx/
 !dataset.csv
+predictions.csv
