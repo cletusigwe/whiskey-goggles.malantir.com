@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:image" content="{{ config('app.url') }}/ogimage.png">
+
 
     {{-- Inline script to detect system dark mode preference and apply it immediately --}}
     <script>
@@ -34,7 +36,9 @@
 
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-    <link rel="icon" href="/favicon.ico" sizes="any">
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
     
 
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -184,6 +184,7 @@ const EditPage: React.FC = () => {
         const editableFields = [
             'id',
             'store_id',
+            'unique_name',
             'name',
             'size',
             'proof',
@@ -192,7 +193,6 @@ const EditPage: React.FC = () => {
             'avg_msrp',
             'fair_price',
             'shelf_price',
-            'stock',
             'notes',
         ];
         Object.entries(whiskeyData).forEach(([key, value]) => {
@@ -203,17 +203,15 @@ const EditPage: React.FC = () => {
         if (image) {
             formData.append('image', image);
         }
-        // Ensure unique_name is included for identification
-        formData.append('unique_name', whiskeyData.unique_name);
 
-        router.post('/whiskeys', formData, {
+        router.post('/whiskey', formData, {
             onSuccess: () => {
                 toast.success(`${whiskeyData.name} saved!`, {
                     description: `${whiskeyData.name} (${whiskeyData.size}ml) has been updated in your collection.`,
                 });
                 sessionStorage.removeItem('selectedWhiskey');
                 sessionStorage.removeItem('capturedImage');
-                router.visit('/');
+                router.visit('/history');
             },
             onError: (errors) => {
                 toast.error('Failed to save whiskey', {
@@ -245,7 +243,6 @@ const EditPage: React.FC = () => {
                             <div className="flex-1">
                                 <h2 className="mb-1 text-xl font-semibold text-amber-900">{whiskeyData.name || 'Select a Whiskey'}</h2>
                                 <p className="text-sm text-amber-700">{whiskeyData.size}ml</p>
-                                <p className="text-sm text-amber-700">Stock: {whiskeyData.stock} bottles</p>
                             </div>
                         </div>
 
@@ -292,7 +289,7 @@ const EditPage: React.FC = () => {
                                             <SelectContent className="w-full">
                                                 <Command>
                                                     <CommandInput
-                                                        placeholder="Search whiskey..."
+                                                        placeholder="Search whiskey by name..."
                                                         value={searchTerm}
                                                         onValueChange={setSearchTerm}
                                                         className="h-9"

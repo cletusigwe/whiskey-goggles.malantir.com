@@ -13,7 +13,7 @@ Route::get('/results', [WhiskeyController::class, 'results']);
 Route::post('/classify', [ClassificationController::class, 'classify']);
 
 Route::get('/edit', [WhiskeyController::class, 'edit']);
-Route::post('/whiskeys', [WhiskeyController::class, 'store']);
+Route::post('/whiskey', [WhiskeyController::class, 'store']);
 
 Route::get('/history', [HistoryController::class, 'index']);
 

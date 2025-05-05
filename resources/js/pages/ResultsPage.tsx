@@ -57,7 +57,7 @@ const ResultsPage: React.FC<Props> = ({ whiskeys }) => {
             try {
                 setIsLoading(true);
                 setProgress(0);
-                setEstimatedTime(4);
+                setEstimatedTime(8);
 
                 const progressInterval = setInterval(() => {
                     setProgress((prev) => {

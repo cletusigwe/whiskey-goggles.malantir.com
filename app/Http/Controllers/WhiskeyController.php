@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Whiskey;
 use App\Models\Image;
+use App\Models\Whiskey;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Inertia\Inertia;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class WhiskeyController extends Controller
 {
@@ -119,13 +119,18 @@ class WhiskeyController extends Controller
 
     public function store(Request $request)
     {
-        $whiskeyId = $request->id;
+        $imageId = $request->image_id;  // ID of the image being edited (from HistoryPage)
+        $whiskeyId = $request->id;  // ID of the whiskey being edited or matched
+        $existingImage = null;
+        $oldWhiskey = null;
 
-        if ($whiskeyId) {
-            // Update existing whiskey
-            $existingWhiskey = Whiskey::findOrFail($whiskeyId);
+        if ($imageId) {
+            // Editing an existing image (reclassifying or updating whiskey attributes)
+            $existingImage = Image::findOrFail($imageId);
+            $oldWhiskey = Whiskey::findOrFail($existingImage->whiskey_id);
             $data = $request->validate([
-                'store_id' => 'nullable|string|unique:whiskeys,store_id,' . $whiskeyId,
+                'whiskey_id' => 'required|exists:whiskeys,id',
+                'store_id' => 'nullable|string',
                 'name' => 'required|string',
                 'size' => 'required|integer',
                 'proof' => 'nullable|numeric',
@@ -134,16 +139,14 @@ class WhiskeyController extends Controller
                 'avg_msrp' => 'nullable|numeric',
                 'fair_price' => 'nullable|numeric',
                 'shelf_price' => 'nullable|numeric',
-                'stock' => 'nullable|integer|min:0',
                 'notes' => 'nullable|string',
                 'image' => 'nullable|string',
             ]);
-            $data['unique_name'] = $existingWhiskey->unique_name; // Preserve existing unique_name
         } else {
-            // Create new whiskey
+            // Creating a new image (new bottle)
             $data = $request->validate([
-                'store_id' => 'nullable|string|unique:whiskeys,store_id',
-                'unique_name' => 'required|string|unique:whiskeys,unique_name',
+                'whiskey_id' => 'required|exists:whiskeys,id',
+                'store_id' => 'nullable|string',
                 'name' => 'required|string',
                 'size' => 'required|integer',
                 'proof' => 'nullable|numeric',
@@ -152,22 +155,29 @@ class WhiskeyController extends Controller
                 'avg_msrp' => 'nullable|numeric',
                 'fair_price' => 'nullable|numeric',
                 'shelf_price' => 'nullable|numeric',
-                'stock' => 'nullable|integer|min:0',
                 'notes' => 'nullable|string',
-                'image' => 'nullable|string',
+                'image' => 'required|string',
             ]);
         }
 
-        $data['store_id'] = $data['store_id'] ?? Str::uuid()->toString();
+        $whiskey = Whiskey::findOrFail($data['whiskey_id']);
 
-        $whiskey = Whiskey::updateOrCreate(
-            ['id' => $whiskeyId],
-            array_merge($data, [
-                'popularity' => ($whiskeyId ? Whiskey::find($whiskeyId)->popularity : 0) + 1,
-                'stock' => $data['stock'] ?? ($whiskeyId ? Whiskey::find($whiskeyId)->stock : 0),
-            ])
-        );
+        // Handle whiskey attribute updates (shared across all bottles of this whiskey)
+        $whiskeyData = [
+            'store_id' => $data['store_id'] ?? $whiskey->store_id ?? Str::uuid()->toString(),
+            'name' => $data['name'],
+            'size' => $data['size'],
+            'proof' => $data['proof'],
+            'abv' => $data['abv'],
+            'spirit_type' => $data['spirit_type'],
+            'avg_msrp' => $data['avg_msrp'],
+            'fair_price' => $data['fair_price'],
+            'shelf_price' => $data['shelf_price'],
+            'notes' => $data['notes'],
+        ];
+        $whiskey->update($whiskeyData);
 
+        // Handle image
         if ($request->has('image') && $request->image) {
             try {
                 $imageDir = 'images';
@@ -192,15 +202,33 @@ class WhiskeyController extends Controller
                 }
 
                 $imagePath = 'images/' . $filename;
-                Image::create([
-                    'whiskey_id' => $whiskey->id,
-                    'image_path' => $imagePath,
-                ]);
+
+                if ($existingImage) {
+                    // Update existing image path and delete old file
+                    Storage::delete($existingImage->image_path);
+                    $existingImage->update(['image_path' => $imagePath, 'whiskey_id' => $whiskey->id]);
+                } else {
+                    // Create new image
+                    Image::create([
+                        'whiskey_id' => $whiskey->id,
+                        'image_path' => $imagePath,
+                    ]);
+                    // Increment stock for new bottle
+                    $whiskey->increment('stock');
+                }
             } catch (\Exception $e) {
                 Log::error('Image storage failed for whiskey ID: ' . $whiskey->id . ': ' . $e->getMessage());
             }
+        } elseif ($existingImage && $oldWhiskey->id !== $whiskey->id) {
+            // Reclassify existing image to new whiskey
+            $existingImage->update(['whiskey_id' => $whiskey->id]);
+            // Adjust stock: decrement old whiskey, increment new whiskey
+            if ($oldWhiskey->stock > 0) {
+                $oldWhiskey->decrement('stock');
+            }
+            $whiskey->increment('stock');
         }
 
-        return redirect('/history')->with('success', 'Whiskey added to inventory!');
+        return redirect('/history')->with('success', 'Whiskey updated in inventory!');
     }
 }
