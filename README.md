@@ -7,7 +7,7 @@ Next, I modified `siglip-base-patch16-224` which is one of the collections of th
 
 I then trained a classification model on my dataset (which can be found in this [zip file](https://drive.google.com/file/d/1IZdqRWjzVM5acwfhpxi3UQtC5Lx_3rDr/view?usp=sharing)) using google colab. The training code can be found in the `train.py` file of this [gist](https://gist.github.com/cletusigwe/e4c6b30c43fa8563fc574452d18cd011). The final training accuracy was around 60%, which is somewhat manageable.
 
-I then built a [webapp]() that allows users to classify bottles from their images, edit their properties while also building a better dataset for "whiskey-label -> name" dataset.
+I then built a [webapp](https://whiskey-goggles.malantir.com) that allows users to classify bottles from their images, edit their properties while also building a better dataset for "whiskey-label -> name" dataset.
 
 This repository contains the code for this webapp I built.
 

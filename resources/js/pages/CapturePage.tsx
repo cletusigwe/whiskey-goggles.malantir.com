@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/AppLayout';
 import { cacheModelAssets, DownloadProgress, isModelCached } from '@/lib/cache-assets';
 import { Link, router } from '@inertiajs/react';
 import { Download, History, Upload } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 const CapturePage: React.FC = () => {
@@ -13,6 +13,7 @@ const CapturePage: React.FC = () => {
     const [downloading, setDownloading] = useState<boolean>(false);
     const [progress, setProgress] = useState<{ loaded: number; total: number; assetName: string } | null>(null);
     const [isCached, setIsCached] = useState<boolean>(true);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const checkCached = async () => {
@@ -80,12 +81,38 @@ const CapturePage: React.FC = () => {
         reader.readAsDataURL(file);
     };
 
+    const handleDefaultImage = async (imageName: string) => {
+        try {
+            const response = await fetch(`/${imageName}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch ${imageName}`);
+            }
+            const blob = await response.blob();
+            const reader = new FileReader();
+            reader.onload = () => {
+                const dataUrl = reader.result as string;
+                setImage(dataUrl);
+                sessionStorage.setItem('capturedImage', dataUrl);
+            };
+            reader.onerror = () => {
+                toast.error('Failed to load default image', {
+                    description: `Could not load ${imageName}.`,
+                });
+            };
+            reader.readAsDataURL(blob);
+        } catch (error) {
+            toast.error('Error loading default image', {
+                description: error instanceof Error ? error.message : 'An unknown error occurred',
+            });
+        }
+    };
+
     const handleAnalyze = () => {
         if (image) {
             router.visit('/results');
         } else {
             toast.error('No image selected', {
-                description: 'Please capture or upload an image first.',
+                description: 'Please capture, upload, or select a default image first.',
             });
         }
     };
@@ -95,8 +122,14 @@ const CapturePage: React.FC = () => {
         sessionStorage.removeItem('capturedImage');
     };
 
+    const handleUploadClick = () => {
+        if (fileInputRef.current && isCached) {
+            fileInputRef.current.click();
+        }
+    };
+
     return (
-        <AppLayout title='Capture'>
+        <AppLayout title="Capture">
             <main className="flex min-h-screen flex-col bg-amber-50">
                 <div className="flex flex-1 flex-col items-center justify-center p-4">
                     <div className="mx-auto w-full max-w-md">
@@ -115,17 +148,6 @@ const CapturePage: React.FC = () => {
                                     />
                                 </div>
                             )}
-                            {!isCached && !downloading && (
-                                <Button
-                                    className="mb-4 w-full cursor-pointer bg-amber-600 text-white hover:bg-amber-700"
-                                    disabled={downloading}
-                                    onClick={handleDownload}
-                                    size="lg"
-                                >
-                                    <Download className="mr-2 h-5 w-5" />
-                                    Download Model
-                                </Button>
-                            )}
 
                             {image ? (
                                 <div className="w-full">
@@ -135,16 +157,18 @@ const CapturePage: React.FC = () => {
                                     <div className="flex gap-2">
                                         <Button
                                             variant="outline"
-                                            className="flex-1 cursor-pointer border-amber-600 text-amber-800 hover:bg-amber-100"
+                                            className="flex-1 cursor-pointer border-amber-600 text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 disabled:opacity-50"
                                             onClick={handleChangeImage}
                                             size="lg"
                                         >
                                             Change Image
                                         </Button>
                                         <Button
-                                            className="flex-1 cursor-pointer bg-amber-600 text-white hover:bg-amber-700"
+                                            className="flex-1 cursor-pointer bg-amber-600 text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 disabled:opacity-50"
                                             onClick={handleAnalyze}
                                             size="lg"
+                                            disabled={!isCached}
+                                            title={!isCached ? 'Download the model to enable analysis' : undefined}
                                         >
                                             Analyze
                                         </Button>
@@ -152,22 +176,68 @@ const CapturePage: React.FC = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <Camera onCapture={handleCapture} />
+                                    <Camera onCapture={handleCapture} isModelCached={isCached} />
+                                    {isCached && !downloading ? (
+                                        <>
+                                            <Button
+                                                variant="outline"
+                                                className="mt-4 w-full cursor-pointer border-amber-600 text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 disabled:opacity-50"
+                                                onClick={handleUploadClick}
+                                                size="lg"
+                                            >
+                                                <Upload className="mr-2 h-5 w-5" />
+                                                Upload Image
+                                            </Button>
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/png"
+                                                className="hidden"
+                                                onChange={handleUpload}
+                                                disabled={!isCached}
+                                                ref={fileInputRef}
+                                            />
+                                            <div className="mt-4">
+                                                <p className="mb-2 text-sm text-amber-700">Try a default image:</p>
+                                                <div className="flex justify-between flex-wrap gap-2">
+                                                    {['whiskey-1.jpg', 'whiskey-2.jpg', 'whiskey-3.jpg'].map((imageName, i) => (
+                                                        <Button
+                                                            key={imageName}
+                                                            variant="outline"
+                                                            className="flex cursor-pointer px-2 py-3 items-center gap-2 border-amber-600 text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 disabled:opacity-50"
+                                                            onClick={() => handleDefaultImage(imageName)}
+                                                        >
+                                                            <img
+                                                                src={`/${imageName}`}
+                                                                alt={imageName.replace('.jpg', '')}
+                                                                className="size-8 rounded-sm border border-amber-300 object-cover"
+                                                            />
+                                                            Sample {i+1}
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        !downloading && (
+                                            <Button
+                                                className="mt-4 w-full cursor-pointer bg-amber-600 text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 disabled:opacity-50"
+                                                disabled={downloading}
+                                                onClick={handleDownload}
+                                                size="lg"
+                                                title={
+                                                    downloading
+                                                        ? 'Downloading in progress'
+                                                        : 'Download model to enable image uploads and default images'
+                                                }
+                                            >
+                                                <Download className="mr-2 h-5 w-5" />
+                                                Download Model
+                                            </Button>
+                                        )
+                                    )}
                                     <Button
                                         variant="outline"
-                                        className="mt-4 w-full cursor-pointer border-amber-600 text-amber-800 hover:bg-amber-100"
-                                        asChild
-                                        size="lg"
-                                    >
-                                        <label>
-                                            <Upload className="mr-2 h-5 w-5" />
-                                            Upload Image
-                                            <input type="file" accept="image/jpeg,image/png" className="hidden" onChange={handleUpload} />
-                                        </label>
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="mt-4 w-full cursor-pointer border-amber-600 text-amber-800 hover:bg-amber-100"
+                                        className="mt-4 w-full cursor-pointer border-amber-600 text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 disabled:opacity-50"
                                         size="lg"
                                     >
                                         <Link href="/history" className="flex h-full w-full items-center justify-center">

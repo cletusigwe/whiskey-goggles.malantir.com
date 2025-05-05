@@ -28,7 +28,7 @@ const ResultsPage: React.FC<Props> = ({ whiskeys }) => {
     const [filteredPredictions, setFilteredPredictions] = useState<WhiskeyPrediction[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [progress, setProgress] = useState<number>(0);
-    const [estimatedTime, setEstimatedTime] = useState<number>(4);
+    const [estimatedTime, setEstimatedTime] = useState<number>(8);
 
     const useDebounce = (value: string, delay: number) => {
         const [debouncedValue, setDebouncedValue] = useState(value);

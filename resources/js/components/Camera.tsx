@@ -5,13 +5,14 @@ import { toast } from 'sonner';
 
 interface CameraProps {
     onCapture: (dataUrl: string) => void;
+    isModelCached: boolean;
 }
 
-const Camera: React.FC<CameraProps> = ({ onCapture }) => {
+const Camera: React.FC<CameraProps> = ({ onCapture, isModelCached }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const [isCameraOn, setIsCameraOn] = useState<boolean>(false);
-    const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+    const [currentDeviceIndex, setCurrentDeviceIndex] = useState<number>(0);
     const [cameraStatus, setCameraStatus] = useState<'available' | 'unavailable' | 'error'>('available');
     const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
     const [isStarting, setIsStarting] = useState<boolean>(false);
@@ -25,16 +26,20 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
                 if (videoInputs.length === 0) {
                     setCameraStatus('unavailable');
                     setVideoDevices([]);
+                    toast.error('No camera detected', {
+                        description: 'Please ensure a camera is available and permissions are granted.',
+                    });
                     return;
                 }
 
                 setVideoDevices(videoInputs);
                 setCameraStatus('available');
 
-                const hasBackCamera = videoInputs.some(
+                // Prefer back camera if available
+                const backCameraIndex = videoInputs.findIndex(
                     (device) => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear'),
                 );
-                setFacingMode(hasBackCamera ? 'environment' : 'user');
+                setCurrentDeviceIndex(backCameraIndex >= 0 ? backCameraIndex : 0);
             } catch (error) {
                 setCameraStatus('error');
                 setVideoDevices([]);
@@ -55,10 +60,14 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
     }, []);
 
     const startCamera = async () => {
-        if (cameraStatus !== 'available' || isStarting) {
+        if (cameraStatus !== 'available' || isStarting || !isModelCached) {
             if (cameraStatus !== 'available') {
                 toast.error('Camera unavailable', {
                     description: cameraStatus === 'unavailable' ? 'No camera detected.' : 'Camera access error.',
+                });
+            } else if (!isModelCached) {
+                toast.error('Model not downloaded', {
+                    description: 'Please download the model weights first.',
                 });
             }
             return;
@@ -74,8 +83,9 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
                 }
             }
 
+            const currentDevice = videoDevices[currentDeviceIndex];
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode },
+                video: { deviceId: currentDevice ? { exact: currentDevice.deviceId } : undefined },
             });
             streamRef.current = stream;
             if (videoRef.current) {
@@ -114,8 +124,8 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
     };
 
     const switchCamera = () => {
-        if (isStarting) return;
-        setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
+        if (isStarting || videoDevices.length <= 1) return;
+        setCurrentDeviceIndex((prev) => (prev + 1) % videoDevices.length);
         stopCamera();
         startCamera();
     };
@@ -141,14 +151,22 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
                 {cameraStatus === 'available' && <video ref={videoRef} className="h-full w-full object-cover" playsInline autoPlay muted />}
                 {!isCameraOn && cameraStatus === 'available' && (
                     <div className="absolute inset-0 flex items-center justify-center bg-amber-200">
-                        <Button className="cursor-pointer bg-amber-600 text-white hover:bg-amber-700" onClick={startCamera} disabled={isStarting}>
+                        <Button
+                            className="cursor-pointer bg-amber-600 text-white hover:bg-amber-700"
+                            onClick={startCamera}
+                            disabled={isStarting || !isModelCached}
+                        >
                             Start Camera
                         </Button>
                     </div>
                 )}
                 {cameraStatus !== 'available' && (
                     <div className="absolute inset-0 flex items-center justify-center bg-amber-200">
-                        <Button className="cursor-pointer bg-amber-600 text-white hover:bg-amber-700" onClick={startCamera} disabled={isStarting}>
+                        <Button
+                            className="cursor-pointer bg-amber-600 text-white hover:bg-amber-700"
+                            onClick={startCamera}
+                            disabled={isStarting || !isModelCached}
+                        >
                             {cameraStatus === 'unavailable' ? 'No Camera Detected' : 'Allow Camera'}
                         </Button>
                     </div>
@@ -159,7 +177,7 @@ const Camera: React.FC<CameraProps> = ({ onCapture }) => {
                         size="icon"
                         className="absolute top-2 right-2 cursor-pointer border-amber-600 text-amber-800 hover:bg-amber-100"
                         onClick={switchCamera}
-                        disabled={isStarting}
+                        disabled={isStarting || !isModelCached}
                     >
                         <SwitchCamera className="h-5 w-5" />
                     </Button>

@@ -1,6 +1,6 @@
 {
-  "_AppLayout-DVArcdi2.js": {
-    "file": "assets/AppLayout-DVArcdi2.js",
+  "_AppLayout-_8uAItZ8.js": {
+    "file": "assets/AppLayout-_8uAItZ8.js",
     "name": "AppLayout",
     "imports": [
       "resources/js/app.tsx"
@@ -10,44 +10,44 @@
     "file": "assets/cache-assets-D7TlHRyD.js",
     "name": "cache-assets"
   },
-  "_card-BMeuQY_Z.js": {
-    "file": "assets/card-BMeuQY_Z.js",
+  "_card-CVmUs0hv.js": {
+    "file": "assets/card-CVmUs0hv.js",
     "name": "card",
     "imports": [
-      "_AppLayout-DVArcdi2.js",
+      "_AppLayout-_8uAItZ8.js",
       "resources/js/app.tsx"
     ]
   },
-  "_input-BxjuKAoX.js": {
-    "file": "assets/input-BxjuKAoX.js",
+  "_input-DNFwhS7r.js": {
+    "file": "assets/input-DNFwhS7r.js",
     "name": "input",
     "imports": [
-      "_AppLayout-DVArcdi2.js",
+      "_AppLayout-_8uAItZ8.js",
       "resources/js/app.tsx"
     ]
   },
-  "_plus-DfvXZn11.js": {
-    "file": "assets/plus-DfvXZn11.js",
+  "_plus-BPrGwF9q.js": {
+    "file": "assets/plus-BPrGwF9q.js",
     "name": "plus",
     "imports": [
-      "_AppLayout-DVArcdi2.js"
+      "_AppLayout-_8uAItZ8.js"
     ]
   },
-  "_progress-D2YWuv7n.js": {
-    "file": "assets/progress-D2YWuv7n.js",
+  "_progress-D-n86Hxk.js": {
+    "file": "assets/progress-D-n86Hxk.js",
     "name": "progress",
     "imports": [
       "resources/js/app.tsx",
-      "_AppLayout-DVArcdi2.js"
+      "_AppLayout-_8uAItZ8.js"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-BRUKo7l-.css",
+    "file": "assets/app-TspPrqbN.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-DbzSqnlF.js",
+    "file": "assets/app-Co2BVx7r.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -58,71 +58,71 @@
       "resources/js/pages/ResultsPage.tsx"
     ],
     "css": [
-      "assets/app-BRUKo7l-.css"
+      "assets/app-TspPrqbN.css"
     ]
   },
   "resources/js/pages/CapturePage.tsx": {
-    "file": "assets/CapturePage-B9l1XcRj.js",
+    "file": "assets/CapturePage-Dax_4zfQ.js",
     "name": "CapturePage",
     "src": "resources/js/pages/CapturePage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_AppLayout-DVArcdi2.js",
-      "_progress-D2YWuv7n.js",
+      "_AppLayout-_8uAItZ8.js",
+      "_progress-D-n86Hxk.js",
       "_cache-assets-D7TlHRyD.js"
     ],
     "css": [
-      "assets/app-BRUKo7l-.css"
+      "assets/app-TspPrqbN.css"
     ]
   },
   "resources/js/pages/EditPage.tsx": {
-    "file": "assets/EditPage-BMa46iFL.js",
+    "file": "assets/EditPage-Buuy7EZG.js",
     "name": "EditPage",
     "src": "resources/js/pages/EditPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_AppLayout-DVArcdi2.js",
-      "_input-BxjuKAoX.js",
+      "_AppLayout-_8uAItZ8.js",
+      "_input-DNFwhS7r.js",
       "_cache-assets-D7TlHRyD.js",
-      "_plus-DfvXZn11.js"
+      "_plus-BPrGwF9q.js"
     ],
     "css": [
-      "assets/app-BRUKo7l-.css"
+      "assets/app-TspPrqbN.css"
     ]
   },
   "resources/js/pages/HistoryPage.tsx": {
-    "file": "assets/HistoryPage-Cq8YvAmh.js",
+    "file": "assets/HistoryPage-BSxdw0mC.js",
     "name": "HistoryPage",
     "src": "resources/js/pages/HistoryPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_AppLayout-DVArcdi2.js",
-      "_card-BMeuQY_Z.js",
-      "_input-BxjuKAoX.js",
-      "_plus-DfvXZn11.js"
+      "_AppLayout-_8uAItZ8.js",
+      "_card-CVmUs0hv.js",
+      "_input-DNFwhS7r.js",
+      "_plus-BPrGwF9q.js"
     ],
     "css": [
-      "assets/app-BRUKo7l-.css"
+      "assets/app-TspPrqbN.css"
     ]
   },
   "resources/js/pages/ResultsPage.tsx": {
-    "file": "assets/ResultsPage-CsTu3xVr.js",
+    "file": "assets/ResultsPage-DqKvhDPY.js",
     "name": "ResultsPage",
     "src": "resources/js/pages/ResultsPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_AppLayout-DVArcdi2.js",
-      "_card-BMeuQY_Z.js",
-      "_input-BxjuKAoX.js",
-      "_progress-D2YWuv7n.js",
+      "_AppLayout-_8uAItZ8.js",
+      "_card-CVmUs0hv.js",
+      "_input-DNFwhS7r.js",
+      "_progress-D-n86Hxk.js",
       "_cache-assets-D7TlHRyD.js"
     ],
     "css": [
-      "assets/app-BRUKo7l-.css"
+      "assets/app-TspPrqbN.css"
     ]
   }
 }
