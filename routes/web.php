@@ -12,6 +12,7 @@ Route::get('/', function () {
 Route::get('/results', [WhiskeyController::class, 'results']);
 Route::post('/classify', [ClassificationController::class, 'classify']);
 
+Route::get('/edit/{image_id}', [WhiskeyController::class, 're_edit']);
 Route::get('/edit', [WhiskeyController::class, 'edit']);
 Route::post('/whiskey', [WhiskeyController::class, 'store']);
 

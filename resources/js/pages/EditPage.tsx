@@ -1,6 +1,5 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -8,17 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout';
 import { getCachedAsset } from '@/lib/cache-assets';
-import { cn } from '@/lib/utils';
+import { nameToUnique } from '@/lib/utils';
 import { PageProps as InertiaPageProps } from '@inertiajs/core';
 import { router, usePage } from '@inertiajs/react';
-import { Check, ChevronLeft, Minus, Plus, Save } from 'lucide-react';
+import { ChevronLeft, Minus, Plus, Save } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-const SPIRIT_TYPES = ['Bourbon', 'Rye', 'Scotch', 'Irish', 'Japanese', 'Canadian', 'Tennessee', 'American', 'Other'];
-
 interface WhiskeyData {
-    id: number;
+    id: string;
     store_id: string;
     unique_name: string;
     name: string;
@@ -42,13 +39,14 @@ interface WhiskeyData {
 interface PageProps extends InertiaPageProps {
     whiskeys: WhiskeyData[];
     whiskey?: WhiskeyData;
+    spirit_types: string[];
 }
 
 const EditPage: React.FC = () => {
-    const { whiskeys, whiskey } = usePage<PageProps>().props;
+    const { whiskeys, whiskey, spirit_types } = usePage<PageProps>().props;
     const [image, setImage] = useState<string | null>(null);
     const [whiskeyData, setWhiskeyData] = useState<WhiskeyData>({
-        id: 0,
+        id: '',
         store_id: '',
         unique_name: '',
         name: '',
@@ -70,7 +68,6 @@ const EditPage: React.FC = () => {
     });
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [labels, setLabels] = useState<string[]>([]);
-
     useEffect(() => {
         const loadLabels = async () => {
             try {
@@ -97,11 +94,10 @@ const EditPage: React.FC = () => {
                 size: whiskey.size.toString(),
                 stock: whiskey.stock.toString(),
             });
-            setSearchTerm(whiskey.name || '');
+            setSearchTerm(whiskey.name);
         } else if (selectedWhiskey) {
             const parsed = JSON.parse(selectedWhiskey);
-            const uniqueName = parsed.unique_name || '';
-            const name = formatWhiskeyName(uniqueName);
+            const uniqueName = parsed.unique_name;
             let size = '750';
             if (uniqueName.includes('750ml')) size = '750';
             else if (uniqueName.includes('375ml')) size = '375';
@@ -117,41 +113,17 @@ const EditPage: React.FC = () => {
                     stock: foundWhiskey.stock.toString(),
                 });
             } else {
-                setWhiskeyData({
-                    id: 0,
-                    store_id: '',
-                    unique_name: uniqueName,
-                    name,
-                    size,
-                    proof: '',
-                    abv: '',
-                    spirit_type: 'Bourbon',
-                    avg_msrp: '',
-                    fair_price: '',
-                    shelf_price: '',
-                    stock: '1',
-                    notes: '',
-                    popularity: 0,
-                    total_score: 0,
-                    wishlist_count: 0,
-                    vote_count: 0,
-                    bar_count: 0,
-                    ranking: 0,
+                toast.error('Whiskey not found in catalog', {
+                    description: 'This is an invalid state. You are doing something',
                 });
             }
-            setSearchTerm(name);
+            setSearchTerm(parsed.name);
         } else {
-            router.visit('/');
-            return;
+            toast.error('Whiskey not found in catalog', {
+                description: 'This is an invalid state. You are doing something',
+            });
         }
     }, [whiskeys, whiskey]);
-
-    const formatWhiskeyName = (name: string): string => {
-        return name
-            .replace(/_/g, ' ')
-            .replace(/750ml|375ml|1L|1\.75L/g, '')
-            .trim();
-    };
 
     const handleNameSelect = (value: string): void => {
         const selectedWhiskey = whiskeys.find((w) => w.unique_name === value);
@@ -181,20 +153,7 @@ const EditPage: React.FC = () => {
 
     const handleSave = (): void => {
         const formData = new FormData();
-        const editableFields = [
-            'id',
-            'store_id',
-            'unique_name',
-            'name',
-            'size',
-            'proof',
-            'abv',
-            'spirit_type',
-            'avg_msrp',
-            'fair_price',
-            'shelf_price',
-            'notes',
-        ];
+        const editableFields = ['id', 'size', 'proof', 'abv', 'spirit_type', 'avg_msrp', 'fair_price', 'shelf_price', 'notes'];
         Object.entries(whiskeyData).forEach(([key, value]) => {
             if (editableFields.includes(key)) {
                 formData.append(key, value.toString());
@@ -243,13 +202,20 @@ const EditPage: React.FC = () => {
                             <div className="flex-1">
                                 <h2 className="mb-1 text-xl font-semibold text-amber-900">{whiskeyData.name || 'Select a Whiskey'}</h2>
                                 <p className="text-sm text-amber-700">{whiskeyData.size}ml</p>
+                                <p className="text-sm text-amber-700">{whiskeyData.stock} in stock</p>
                             </div>
                         </div>
 
                         <form className="space-y-4">
                             <div className="rounded-lg bg-white p-4 shadow-sm">
                                 <h3 className="mb-3 font-medium text-amber-900">Stats</h3>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                                        Store Id: {whiskeyData.store_id}
+                                    </Badge>
+                                    <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                                        Brand Id: {whiskeyData.store_id}
+                                    </Badge>
                                     <Badge variant="secondary" className="bg-amber-100 text-amber-800">
                                         Popularity: {whiskeyData.popularity}
                                     </Badge>
@@ -276,6 +242,7 @@ const EditPage: React.FC = () => {
                                 <div className="space-y-3">
                                     <div className="space-y-2">
                                         <Label htmlFor="name">Name</Label>
+
                                         <Select value={whiskeyData.unique_name || ''} onValueChange={handleNameSelect}>
                                             <SelectTrigger className="w-full border-amber-300 bg-white">
                                                 {whiskeyData.unique_name ? (
@@ -286,54 +253,48 @@ const EditPage: React.FC = () => {
                                                     <span>Select whiskey...</span>
                                                 )}
                                             </SelectTrigger>
+
                                             <SelectContent className="w-full">
-                                                <Command>
-                                                    <CommandInput
-                                                        placeholder="Search whiskey by name..."
+                                                <div className="p-2">
+                                                    <Input
+                                                        placeholder="Search whiskey..."
                                                         value={searchTerm}
-                                                        onValueChange={setSearchTerm}
+                                                        onChange={(e) => setSearchTerm(e.target.value)}
                                                         className="h-9"
                                                     />
-                                                    <CommandList>
-                                                        <CommandEmpty>No whiskey found.</CommandEmpty>
-                                                        <CommandGroup>
-                                                            <ScrollArea className="h-[200px] max-w-sm">
-                                                                {labels
-                                                                    .filter((label) => {
-                                                                        const formattedName = formatWhiskeyName(label).toLowerCase();
-                                                                        const terms = searchTerm.toLowerCase().split(' ');
-                                                                        return terms.every((term) => formattedName.includes(term));
-                                                                    })
-                                                                    .map((label) => (
-                                                                        <CommandItem
-                                                                            key={label}
-                                                                            value={label}
-                                                                            onSelect={() => handleNameSelect(label)}
-                                                                        >
-                                                                            <div className="flex w-full items-center justify-between">
-                                                                                <span>{formatWhiskeyName(label)}</span>
-                                                                                <span className="text-muted-foreground text-xs">
-                                                                                    {label.includes('750ml')
-                                                                                        ? '750ml'
-                                                                                        : label.includes('375ml')
-                                                                                          ? '375ml'
-                                                                                          : label.includes('1L')
-                                                                                            ? '1L'
-                                                                                            : '1.75L'}
-                                                                                </span>
-                                                                            </div>
-                                                                            <Check
-                                                                                className={cn(
-                                                                                    'ml-auto h-4 w-4',
-                                                                                    whiskeyData.unique_name === label ? 'opacity-100' : 'opacity-0',
-                                                                                )}
-                                                                            />
-                                                                        </CommandItem>
-                                                                    ))}
-                                                            </ScrollArea>
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
+                                                </div>
+
+                                                {/* scrollable results list */}
+                                                <ScrollArea className="h-[200px]">
+                                                    {labels
+                                                        .filter((label) =>
+                                                            label.toLowerCase().includes(nameToUnique(searchTerm.toLowerCase()).trim()),
+                                                        )
+                                                        .map((label) => {
+                                                            const w = whiskeys.find((x) => x.unique_name === label);
+                                                            const size = label.includes('750ml')
+                                                                ? '750ml'
+                                                                : label.includes('375ml')
+                                                                  ? '375ml'
+                                                                  : label.includes('1L')
+                                                                    ? '1L'
+                                                                    : '1.75L';
+
+                                                            return (
+                                                                <SelectItem key={label} value={label}>
+                                                                    <div className="flex w-full items-center justify-between gap-2">
+                                                                        <span className="flex-1 truncate">{w?.name ?? label}</span>
+                                                                        <span className="text-muted-foreground flex-none text-xs">{size}</span>
+                                                                    </div>
+                                                                </SelectItem>
+                                                            );
+                                                        })}
+
+                                                    {labels.filter((l) => l.toLowerCase().includes(nameToUnique(searchTerm.toLowerCase()).trim()))
+                                                        .length === 0 && (
+                                                        <div className="text-muted-foreground p-3 text-center text-sm">No whiskey found.</div>
+                                                    )}
+                                                </ScrollArea>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -361,10 +322,10 @@ const EditPage: React.FC = () => {
                                                 onValueChange={(value) => handleInputChange('spirit_type', value)}
                                             >
                                                 <SelectTrigger className="border-amber-300 bg-white">
-                                                    <SelectValue placeholder="Type" />
+                                                    <span>{whiskeyData.spirit_type}</span>
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {SPIRIT_TYPES.map((type) => (
+                                                    {spirit_types.map((type) => (
                                                         <SelectItem key={type} value={type}>
                                                             {type}
                                                         </SelectItem>
@@ -582,7 +543,7 @@ const EditPage: React.FC = () => {
                                     <Textarea
                                         id="notes"
                                         placeholder="Add any notes about this whiskey..."
-                                        value={whiskeyData.notes}
+                                        value={whiskeyData.notes ?? ''}
                                         onChange={(e) => handleInputChange('notes', e.target.value)}
                                         className="min-h-[80px] border-amber-300 bg-white"
                                     />

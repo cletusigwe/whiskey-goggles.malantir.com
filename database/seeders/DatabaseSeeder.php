@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
                 'size' => (int) preg_replace('/[^\d]/', '', $data['size']),
                 'proof' => $data['proof'] ?: null,
                 'abv' => $data['abv'] ?: null,
-                'spirit_type' => $data['spirit_type'],
+                'spirit_type' => $data['spirit_type'] ?: 'nil',
                 'brand_id' => $brandId,
                 'popularity' => (int) $data['popularity'],
                 'image_url' => $imageUrl,

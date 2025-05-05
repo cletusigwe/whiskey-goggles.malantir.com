@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import AppLayout from '@/layouts/AppLayout';
 import { getCachedAsset, isModelCached } from '@/lib/cache-assets';
+import { nameToUnique } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import { Camera, Search, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -22,6 +23,7 @@ interface Props {
 }
 
 const ResultsPage: React.FC<Props> = ({ whiskeys }) => {
+    const [topK] = useState(20);
     const [image, setImage] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [allPredictions, setAllPredictions] = useState<WhiskeyPrediction[]>([]);
@@ -113,13 +115,13 @@ const ResultsPage: React.FC<Props> = ({ whiskeys }) => {
                     .sort((a, b) => b.prob - a.prob);
 
                 setAllPredictions(filteredPredictionsTemp);
-                setFilteredPredictions(filteredPredictionsTemp.slice(0, 10));
+                setFilteredPredictions(filteredPredictionsTemp.slice(0, topK));
                 setIsLoading(false);
                 clearInterval(progressInterval);
                 setProgress(100);
                 setEstimatedTime(0);
                 toast.success('Whiskey analysis complete', {
-                    description: `Found ${highConfidenceCount} matches above 50% confidence. Displaying ${filteredPredictionsTemp.length} available in database.`,
+                    description: `Found ${highConfidenceCount} matches above 50% confidence. Displaying the top-${topK} results. You can still search within ${filteredPredictionsTemp.length} available in database.`,
                 });
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -137,10 +139,10 @@ const ResultsPage: React.FC<Props> = ({ whiskeys }) => {
     useEffect(() => {
         const lowerSearchTerm = debouncedSearchTerm.toLowerCase().trim();
         if (lowerSearchTerm === '') {
-            setFilteredPredictions(allPredictions.slice(0, 10));
+            setFilteredPredictions(allPredictions.slice(0, topK));
         } else {
             const filtered = allPredictions
-                .filter((prediction) => prediction.unique_name.toLowerCase().includes(lowerSearchTerm))
+                .filter((prediction) => prediction.unique_name.toLowerCase().includes(nameToUnique(lowerSearchTerm)))
                 .sort((a, b) => b.prob - a.prob);
             setFilteredPredictions(filtered);
         }
@@ -180,10 +182,6 @@ const ResultsPage: React.FC<Props> = ({ whiskeys }) => {
         return exps.map((e) => e / sumExps);
     };
 
-    const formatWhiskeyName = (name: string): string => {
-        return name.replace(/_/g, ' ').trim();
-    };
-
     const handleSelect = (prediction: WhiskeyPrediction): void => {
         router.post(
             '/classify',
@@ -191,7 +189,7 @@ const ResultsPage: React.FC<Props> = ({ whiskeys }) => {
             {
                 onSuccess: () => {
                     toast.success('Whiskey selected', {
-                        description: `You chose ${formatWhiskeyName(prediction.name)}.`,
+                        description: `You chose ${prediction.name}.`,
                     });
                     sessionStorage.setItem('selectedWhiskey', JSON.stringify(prediction));
                     router.visit('/edit');
@@ -262,7 +260,7 @@ const ResultsPage: React.FC<Props> = ({ whiskeys }) => {
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex-1">
                                                                 <h3 className="font-medium text-amber-900">
-                                                                    {formatWhiskeyName(prediction.unique_name)}
+                                                                    {whiskeys.filter((w) => w.unique_name == prediction.unique_name)[0].name}
                                                                 </h3>
                                                                 <p className="text-xs text-amber-700">
                                                                     {prediction.unique_name.includes('750ml')

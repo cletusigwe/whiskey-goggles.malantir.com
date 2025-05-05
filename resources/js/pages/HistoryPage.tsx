@@ -23,6 +23,7 @@ interface HistoryPageProps {
 const HistoryPage: React.FC<HistoryPageProps> = ({ images }) => {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [filteredImages, setFilteredImages] = useState<HistoryImage[]>([]);
+    const [image, setImage] = useState<string | null>(null);
 
     useEffect(() => {
         setFilteredImages(images);
@@ -44,6 +45,32 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ images }) => {
         return unique_name.replace(/_/g, ' ').trim();
     };
 
+    const handleImage = async (imageName: string) => {
+        try {
+            const response = await fetch(`${imageName}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch ${imageName}`);
+            }
+            const blob = await response.blob();
+            const reader = new FileReader();
+            reader.onload = () => {
+                const dataUrl = reader.result as string;
+                setImage(dataUrl);
+                sessionStorage.setItem('capturedImage', dataUrl);
+            };
+            reader.onerror = () => {
+                toast.error('Failed to load image', {
+                    description: `Could not load ${imageName}.`,
+                });
+            };
+            reader.readAsDataURL(blob);
+        } catch (error) {
+            toast.error('Error loading default image', {
+                description: error instanceof Error ? error.message : 'An unknown error occurred',
+            });
+        }
+    };
+
     const formatDate = (dateString: string): string => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -57,48 +84,34 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ images }) => {
         return isValid;
     });
 
-    const handleEdit = (image: HistoryImage) => {
-        sessionStorage.setItem(
-            'selectedWhiskey',
-            JSON.stringify({
-                id: image.whiskey_id,
-                unique_name: image.unique_name,
-                name: image.name,
-                image: image.image,
-            }),
-        );
-        if (image.image) {
-            sessionStorage.setItem('capturedImage', image.image);
-        }
-        router.visit(`/edit?id=${image.whiskey_id}&image_id=${image.id}`);
-    };
-
-    const handleReclassify = (image: HistoryImage) => {
-        const imageUrl = image.image || sessionStorage.getItem('capturedImage') || '';
+    const handleEdit = (historyImage: HistoryImage) => {
+        const imageUrl = historyImage.image;
         if (!imageUrl) {
             toast.error('No image available', {
                 description: 'Cannot reclassify without an image.',
             });
             return;
         }
-        sessionStorage.setItem('capturedImage', imageUrl);
-        router.post(
-            '/classify',
-            { image: imageUrl, whiskey: image.unique_name },
-            {
-                onSuccess: () => {
-                    toast.success('Whiskey reclassified', {
-                        description: `Reclassifying ${formatWhiskeyName(image.unique_name)}.`,
-                    });
-                    router.visit('/results');
-                },
-                onError: (errors) => {
-                    toast.error('Reclassification failed', {
-                        description: Object.values(errors).join(', '),
-                    });
-                },
-            },
-        );
+        handleImage(imageUrl);
+        router.visit(`/edit/${historyImage.id}`);
+    };
+
+    const handleReclassify = (historyImage: HistoryImage) => {
+        const imageUrl = historyImage.image;
+        if (!imageUrl) {
+            toast.error('No image available', {
+                description: 'Cannot reclassify without an image.',
+            });
+            return;
+        }
+        handleImage(imageUrl);
+        if (image) {
+            router.visit('/results');
+        } else {
+            toast.error('Reclassification failed', {
+                description: 'Image not found',
+            });
+        }
     };
 
     const handleNewCapture = () => {

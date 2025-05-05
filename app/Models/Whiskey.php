@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class Whiskey extends Model
 {
@@ -40,5 +41,16 @@ class Whiskey extends Model
     public function brand()
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public static function spiritTypes(bool $asArray = false): Collection|array
+    {
+        $types = self::query()
+            ->whereNotNull('spirit_type')
+            ->distinct()
+            ->orderBy('spirit_type')
+            ->pluck('spirit_type');
+
+        return $asArray ? $types->values()->all() : $types;
     }
 }

@@ -198,7 +198,7 @@ const CapturePage: React.FC = () => {
                                             />
                                             <div className="mt-4">
                                                 <p className="mb-2 text-sm text-amber-700">Try a default image:</p>
-                                                <div className="flex justify-between flex-wrap gap-2">
+                                                <div className="flex justify-between gap-2">
                                                     {['whiskey-1.jpg', 'whiskey-2.jpg', 'whiskey-3.jpg'].map((imageName, i) => (
                                                         <Button
                                                             key={imageName}
