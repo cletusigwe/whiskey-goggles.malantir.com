@@ -26,7 +26,7 @@ This is my submission for the [Baxus Whiskey Goggles Bounty](https://earn.supert
 
 ---
 
-## 🥃 Background
+##  Background
 
 I came across [Superteam Earn](https://earn.superteam.fun) where people can tackle bounty challenges for real-world projects, and I thought it would be fun to try one. This codebase is the result of that adventure.
 
@@ -36,7 +36,7 @@ The challenge:
 
 ---
 
-## 🔍 My Process
+##  My Process
 
 ### 1. Data Collection
 
@@ -91,7 +91,7 @@ Here’s a [demo video on YouTube](https://youtu.be/cGOc8Ps28Ko).
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 This app uses **Laravel + Inertia.js + React + TailwindCSS**.
 
@@ -111,4 +111,5 @@ git lfs pull
 composer run dev
 
 # App runs at http://localhost:8000
+```
 
