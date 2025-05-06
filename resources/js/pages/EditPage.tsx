@@ -36,15 +36,21 @@ interface WhiskeyData {
     ranking: number;
 }
 
+interface ImageData {
+    id: number;
+    image_path: string;
+}
+
 interface PageProps extends InertiaPageProps {
     whiskeys: WhiskeyData[];
     whiskey?: WhiskeyData;
+    image: ImageData;
     spirit_types: string[];
 }
 
 const EditPage: React.FC = () => {
-    const { whiskeys, whiskey, spirit_types } = usePage<PageProps>().props;
-    const [image, setImage] = useState<string | null>(null);
+    const { whiskeys, whiskey, image, spirit_types } = usePage<PageProps>().props;
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [whiskeyData, setWhiskeyData] = useState<WhiskeyData>({
         id: '',
         store_id: '',
@@ -68,6 +74,7 @@ const EditPage: React.FC = () => {
     });
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [labels, setLabels] = useState<string[]>([]);
+
     useEffect(() => {
         const loadLabels = async () => {
             try {
@@ -81,11 +88,8 @@ const EditPage: React.FC = () => {
         };
         loadLabels();
 
-        const selectedWhiskey = sessionStorage.getItem('selectedWhiskey');
-        const storedImage = sessionStorage.getItem('capturedImage');
-
-        if (storedImage) {
-            setImage(storedImage);
+        if (image) {
+            setImageUrl(image.image_path);
         }
 
         if (whiskey) {
@@ -95,35 +99,8 @@ const EditPage: React.FC = () => {
                 stock: whiskey.stock.toString(),
             });
             setSearchTerm(whiskey.name);
-        } else if (selectedWhiskey) {
-            const parsed = JSON.parse(selectedWhiskey);
-            const uniqueName = parsed.unique_name;
-            let size = '750';
-            if (uniqueName.includes('750ml')) size = '750';
-            else if (uniqueName.includes('375ml')) size = '375';
-            else if (uniqueName.includes('1L')) size = '1000';
-            else if (uniqueName.includes('1.75L')) size = '1750';
-
-            const foundWhiskey = whiskeys.find((w) => w.unique_name === uniqueName);
-
-            if (foundWhiskey) {
-                setWhiskeyData({
-                    ...foundWhiskey,
-                    size: foundWhiskey.size.toString(),
-                    stock: foundWhiskey.stock.toString(),
-                });
-            } else {
-                toast.error('Whiskey not found in catalog', {
-                    description: 'This is an invalid state. You are doing something',
-                });
-            }
-            setSearchTerm(parsed.name);
-        } else {
-            toast.error('Whiskey not found in catalog', {
-                description: 'This is an invalid state. You are doing something',
-            });
         }
-    }, [whiskeys, whiskey]);
+    }, [whiskeys, whiskey, image]);
 
     const handleNameSelect = (value: string): void => {
         const selectedWhiskey = whiskeys.find((w) => w.unique_name === value);
@@ -159,17 +136,13 @@ const EditPage: React.FC = () => {
                 formData.append(key, value.toString());
             }
         });
-        if (image) {
-            formData.append('image', image);
-        }
+        formData.append('image_id', image.id.toString());
 
         router.post('/whiskey', formData, {
             onSuccess: () => {
                 toast.success(`${whiskeyData.name} saved!`, {
                     description: `${whiskeyData.name} (${whiskeyData.size}ml) has been updated in your collection.`,
                 });
-                sessionStorage.removeItem('selectedWhiskey');
-                sessionStorage.removeItem('capturedImage');
                 router.visit('/history');
             },
             onError: (errors) => {
@@ -194,9 +167,9 @@ const EditPage: React.FC = () => {
                 <div className="flex-1 overflow-y-auto p-4">
                     <div className="mx-auto w-full max-w-md">
                         <div className="mb-6 flex items-start gap-4">
-                            {image && (
+                            {imageUrl && (
                                 <div className="relative h-32 w-24 flex-shrink-0 overflow-hidden rounded-lg">
-                                    <img src={image} alt="Whiskey" className="h-full w-full object-cover" />
+                                    <img src={imageUrl} alt="Whiskey" className="h-full w-full object-cover" />
                                 </div>
                             )}
                             <div className="flex-1">
@@ -242,7 +215,6 @@ const EditPage: React.FC = () => {
                                 <div className="space-y-3">
                                     <div className="space-y-2">
                                         <Label htmlFor="name">Name</Label>
-
                                         <Select value={whiskeyData.unique_name || ''} onValueChange={handleNameSelect}>
                                             <SelectTrigger className="w-full border-amber-300 bg-white">
                                                 {whiskeyData.unique_name ? (
@@ -253,7 +225,6 @@ const EditPage: React.FC = () => {
                                                     <span>Select whiskey...</span>
                                                 )}
                                             </SelectTrigger>
-
                                             <SelectContent className="w-full">
                                                 <div className="p-2">
                                                     <Input
@@ -263,8 +234,6 @@ const EditPage: React.FC = () => {
                                                         className="h-9"
                                                     />
                                                 </div>
-
-                                                {/* scrollable results list */}
                                                 <ScrollArea className="h-[200px]">
                                                     {labels
                                                         .filter((label) =>
@@ -279,7 +248,6 @@ const EditPage: React.FC = () => {
                                                                   : label.includes('1L')
                                                                     ? '1L'
                                                                     : '1.75L';
-
                                                             return (
                                                                 <SelectItem key={label} value={label}>
                                                                     <div className="flex w-full items-center justify-between gap-2">
@@ -289,7 +257,6 @@ const EditPage: React.FC = () => {
                                                                 </SelectItem>
                                                             );
                                                         })}
-
                                                     {labels.filter((l) => l.toLowerCase().includes(nameToUnique(searchTerm.toLowerCase()).trim()))
                                                         .length === 0 && (
                                                         <div className="text-muted-foreground p-3 text-center text-sm">No whiskey found.</div>

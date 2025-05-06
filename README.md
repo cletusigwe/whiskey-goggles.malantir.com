@@ -48,7 +48,7 @@ Scraping code is in [`scraper.py`](https://gist.github.com/cletusigwe/e4c6b30c43
 
 #### b. Filtering
 
-To clean up the dataset, I built a small [image filtering UI](https://whiskey-goggles-filter.malantir.com).
+To clean up the dataset, I built a small [image filtering UI](https://github.com/cletusigwe/whiskey-goggles-datafilter-ui).
 
 <div align="center">
   <table>
@@ -98,7 +98,7 @@ This app uses **Laravel + Inertia.js + React + TailwindCSS**.
 ```bash
 # Clone the repo
 git clone https://github.com/cletusigwe/whiskey-goggles.malantir.com.git
-cd whiskey-goggles.malantir.comwhiskey-goggles
+cd whiskey-goggles.malantir.com
 
 # Make sure Git LFS is installed and pulls the model files
 git lfs install

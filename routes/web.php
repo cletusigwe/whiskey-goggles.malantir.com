@@ -12,11 +12,11 @@ Route::get('/', function () {
 Route::get('/results', [WhiskeyController::class, 'results']);
 Route::post('/classify', [ClassificationController::class, 'classify']);
 
-Route::get('/edit/{image_id}', [WhiskeyController::class, 're_edit']);
-Route::get('/edit', [WhiskeyController::class, 'edit']);
+Route::get('/edit/{image_id}', [WhiskeyController::class, 'edit']);
 Route::post('/whiskey', [WhiskeyController::class, 'store']);
 
 Route::get('/history', [HistoryController::class, 'index']);
+Route::delete('/images/{image}', [HistoryController::class, 'destroy']);
 
 Route::get('/onnx/{file}', function ($file) {
     $path = storage_path("app/onnx/$file");

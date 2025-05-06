@@ -192,7 +192,6 @@ const ResultsPage: React.FC<Props> = ({ whiskeys }) => {
                         description: `You chose ${prediction.name}.`,
                     });
                     sessionStorage.setItem('selectedWhiskey', JSON.stringify(prediction));
-                    router.visit('/edit');
                 },
                 onError: (errors) => {
                     toast.error('Selection failed', {
